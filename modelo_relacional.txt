@@ -1,0 +1,132 @@
+1. Definición de Entidades y Atributos
+Tabla: usuarios (Personal administrativo)
+
+id: UUID (PK) - Identificador único universal.
+
+nombres: VARCHAR(100) (NOT NULL)
+
+apellidos: VARCHAR(100) (NOT NULL)
+
+correo: VARCHAR(120) (UNIQUE, NOT NULL)
+
+password_hash: VARCHAR(255) (NOT NULL) - Hash de seguridad.
+
+rol: VARCHAR(30) (DEFAULT: 'admin')
+
+activo: BOOLEAN (DEFAULT: true)
+
+Tabla: estudiantes (Entidad central)
+
+id: UUID (PK)
+
+codigo_estudiante: VARCHAR(30) (UNIQUE, NOT NULL)
+
+nombres: VARCHAR(100) (NOT NULL)
+
+apellidos: VARCHAR(100) (NOT NULL)
+
+numero_documento: VARCHAR(30) (UNIQUE)
+
+grado: VARCHAR(30)
+
+estado: VARCHAR(20) (DEFAULT: 'activo')
+
+Tabla: acudientes (Padres o tutores)
+
+id: UUID (PK)
+
+nombres: VARCHAR(100) (NOT NULL)
+
+apellidos: VARCHAR(100) (NOT NULL)
+
+telefono: VARCHAR(20) (NOT NULL)
+
+correo: VARCHAR(120)
+
+whatsapp_activo: BOOLEAN (DEFAULT: true)
+
+Tabla: estudiante_acudiente (Tabla intermedia N:M)
+
+id: UUID (PK)
+
+estudiante_id: UUID (FK -> estudiantes.id)
+
+acudiente_id: UUID (FK -> acudientes.id)
+
+parentesco: VARCHAR(50)
+
+es_principal: BOOLEAN
+
+responsable_pago: BOOLEAN
+
+Tabla: tipos_cobro (Catálogo de servicios)
+
+id: UUID (PK)
+
+nombre: VARCHAR(50) (UNIQUE, NOT NULL)
+
+activo: BOOLEAN
+
+Tabla: cuentas_por_cobrar (Deudas generadas)
+
+id: UUID (PK)
+
+estudiante_id: UUID (FK -> estudiantes.id)
+
+tipo_cobro_id: UUID (FK -> tipos_cobro.id)
+
+valor: DECIMAL(12,2) (NOT NULL)
+
+saldo_pendiente: DECIMAL(12,2) (NOT NULL)
+
+estado: VARCHAR(20) (DEFAULT: 'pendiente')
+
+Tabla: pagos (Transacciones financieras)
+
+id: UUID (PK)
+
+cuenta_por_cobrar_id: UUID (FK -> cuentas_por_cobrar.id)
+
+registrado_por_id: UUID (FK -> usuarios.id)
+
+valor_pagado: DECIMAL(12,2) (NOT NULL)
+
+fecha_pago: TIMESTAMP (NOT NULL)
+
+Tabla: asistencias (Registro de puntualidad)
+
+id: UUID (PK)
+
+estudiante_id: UUID (FK -> estudiantes.id)
+
+fecha: DATE (NOT NULL)
+
+estado: VARCHAR(20) (NOT NULL)
+
+registrado_por_id: UUID (FK -> usuarios.id)
+
+Tabla: notificaciones_whatsapp (Bitácora de comunicación)
+
+id: UUID (PK)
+
+estudiante_id: UUID (FK -> estudiantes.id)
+
+acudiente_id: UUID (FK -> acudientes.id)
+
+estado_envio: VARCHAR(20) (DEFAULT: 'pendiente')
+
+2. Relaciones y Cardinalidad
+Estudiantes <-> Acudientes (N:M): Un estudiante puede tener múltiples acudientes y viceversa. Se resuelve mediante la tabla asociativa estudiante_acudiente.
+
+Estudiantes <-> Cuentas (1:N): Un estudiante es titular de múltiples registros de cobro.
+
+Cuentas <-> Pagos (1:N): Una cuenta por cobrar puede recibir diversos abonos hasta su liquidación.
+
+Usuarios <-> Gestión (1:N): Los usuarios con rol admin registran y auditan los procesos de pagos y asistencias.
+
+3. Restricciones de Integridad
+PK: Uso de UUID para escalabilidad y evitar duplicidad en entornos distribuidos.
+
+FK: Integridad referencial mandatoria en todas las tablas transaccionales.
+
+Unique Constraints: Aplicadas en correos, códigos estudiantiles y documentos para prevenir registros duplicados.
